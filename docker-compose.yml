@@ -1,0 +1,17 @@
+version: '3.8'
+
+services:
+  scheduler:
+    build: .
+    container_name: household-scheduler-app
+    restart: unless-stopped
+    ports:
+      - "3400:3400"
+    environment:
+      - NODE_ENV=production
+      - PORT=3400
+      - HOSTNAME=0.0.0.0
+    volumes:
+      - sqlite_data:/app/db
+volumes:
+  sqlite_data:
