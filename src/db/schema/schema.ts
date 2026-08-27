@@ -29,7 +29,7 @@ db.exec(`
         status TEXT NOT NULL DEFAULT 'pending',
         completed_at TEXT,
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
-        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+        FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
     );
 `);
 
