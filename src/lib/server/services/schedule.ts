@@ -36,3 +36,11 @@ export function generateWeeklyScheduling(users: User[], tasks: Task[], year: num
     });
     transaction();
 }
+
+export function getWeekSchedule(week: number, year: number): Schedule[] {
+    const stmt = db.prepare('SELECT * FROM schedules WHERE week_number = ? AND year = ?');
+    const schedules = stmt.all(week,year) as Schedule[];
+    return schedules;
+}
+
+

@@ -1,5 +1,5 @@
 'use server';
-import { getAllUsers,insertUser,deleteUser,modifyName } from "@/lib/server/services/users";
+import { getAllUsers,createUser,deleteUser,modifyName } from "@/lib/server/services/users";
 import { User } from "@/lib/types";
 
 
@@ -16,7 +16,7 @@ export async function fetchAllUsers() : Promise<{ success: boolean; data?: User[
 
 export async function handleUserInsert(name: string) : Promise<{ success: boolean; data?: User; error?: string }>{
     try{
-        const user = insertUser(name);
+        const user = createUser(name);
         return {success: true, data: user};
     }catch(error){
         console.error("Error creating user");

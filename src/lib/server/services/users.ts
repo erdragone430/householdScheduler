@@ -7,7 +7,7 @@ export function getAllUsers(): User[] {
     const stmt = db.prepare('SELECT * FROM users');
     const users = stmt.all() as User[];
     if(users.length === 0 ){
-        throw new Error('No user found');
+        console.log("No user found");
     }
     return users;
 }
@@ -20,7 +20,7 @@ export function checkExist(id: string) : void{
     }
 }
 
-export function insertUser(name: string, role = 'member') : User{
+export function createUser(name: string, role = 'member') : User{
     const checkStmt = db.prepare('SELECT id FROM users WHERE id = ?');
     let id: string;
     let exists: unknown;
