@@ -112,22 +112,16 @@ export default async function MainPage() {
                   <div className="flex items-center gap-3">
                     <div className="relative w-9 h-9 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center text-xs font-semibold text-neutral-700 shrink-0">
                       {initials}
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full ring-2 ring-white bg-emerald-500" />
+                
                     </div>
 
                     <div className="min-w-0">
                       <p className="text-sm font-semibold text-neutral-900 leading-tight truncate">
                         {user.name}
                       </p>
-                      <p className="text-xs text-neutral-500 mt-0.5 capitalize truncate">
-                        Ruolo: {user.role}
-                      </p>
                     </div>
                   </div>
 
-                  <span className="text-[11px] font-medium text-neutral-400 bg-neutral-50 px-2 py-1 rounded-md border border-neutral-100 shrink-0">
-                    Attivo
-                  </span>
                 </li>
               );
             })}

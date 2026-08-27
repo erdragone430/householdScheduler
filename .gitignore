@@ -43,4 +43,4 @@ public/favicon.*
 # app-brand logo images (not committed, placed by CI/deploy)
 public/logos/
 
-db/
+db/scheduler.db
