@@ -1,90 +1,96 @@
 import React from 'react';
 import { fetchAllUsers } from "@/lib/server/actions/users";
-import { fetchWeekSchedule } from "@/lib/server/actions/schedule"; 
+import { fetchWeekSchedule } from "@/lib/server/actions/schedule";
+import { fetchAllTasks } from "@/lib/server/actions/tasks"; 
 
 export default async function MainPage() {
-  const daysOfWeek = ['Lun', 'Mar', 'Mer', 'Gio', 'Ven', 'Sab', 'Dom'];
-  const days = Array.from({ length: 31 }, (_, i) => i + 1);
-  
-  const currentYear = new Date().getFullYear();
   const currentDate = new Date();
-  const startOfYear = new Date(currentDate.getFullYear(), 0, 1);
-  const currentWeekNumber = Math.ceil(((currentDate.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
+  const currentYear = currentDate.getFullYear();
+  
+  // Calcola il nome del mese corrente in inglese (es: "August")
+  const currentMonthName = currentDate.toLocaleString('en-US', { month: 'long' });
+  
+  const weeks = [1, 2, 3, 4];
 
-  const [usersResult, scheduleResult] = await Promise.all([
+  const [usersResult, tasksResult, ...weekResults] = await Promise.all([
     fetchAllUsers(),
-    fetchWeekSchedule(currentYear, currentWeekNumber)
+    fetchAllTasks(), 
+    ...weeks.map((weekNum) => fetchWeekSchedule(currentYear, weekNum))
   ]);
 
   const users = usersResult.success && usersResult.data ? usersResult.data : [];
-  const schedules = scheduleResult.success && scheduleResult.schedules ? scheduleResult.schedules : [];
+  const userMap = new Map(users.map((u) => [u.id, u.name]));
+
+  const tasks = tasksResult?.success && tasksResult.data ? tasksResult.data : [];
+  const taskMap = new Map(tasks.map((t) => [t.id, t.title]));
+
+  const schedulesByWeek = weeks.map((weekNum, index) => {
+    const res = weekResults[index];
+    return {
+      weekNum,
+      schedules: res.success && res.schedules ? res.schedules : []
+    };
+  });
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 items-start">
       
+      {/* CALENDAR SECTION */}
       <section className="lg:col-span-2 bg-white border border-neutral-200 rounded-2xl p-4 sm:py-6 sm:px-8 shadow-xs overflow-hidden">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <div>
-            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-neutral-900">
-              Calendar
+            <h2 className="text-lg sm:text-xl font-bold tracking-tight text-neutral-900 flex items-center gap-2">
+              Monthly Calendar 
+              <span className="text-neutral-500 font-medium text-base sm:text-lg">
+                - {currentMonthName}
+              </span>
             </h2>
             <p className="text-xs sm:text-sm text-neutral-500 mt-0.5">
-              Week {currentWeekNumber}
+              Assignments for the 4 weeks of the month
             </p>
           </div>
-          
-          <div className="flex gap-2 self-start sm:self-auto">
-            <button className="px-3 py-1.5 text-xs font-medium border border-neutral-200 rounded-lg hover:bg-neutral-50">
-              Today
-            </button>
-            <button className="px-3 py-1.5 text-xs font-medium border border-neutral-200 rounded-lg hover:bg-neutral-50">
-              Month
-            </button>
-          </div>
         </div>
 
-        <div className="grid grid-cols-7 gap-1 sm:gap-2 text-center text-[11px] sm:text-xs font-semibold text-neutral-500 mb-2">
-          {daysOfWeek.map((day) => (
-            <div key={day} className="py-1">{day}</div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 gap-1 sm:gap-2">
-          {days.map((day) => {
-            const isToday = day === new Date().getDate();
-            const dayTask = schedules[day % schedules.length];
-
-            return (
-              <div
-                key={day}
-                className={`min-h-[60px] sm:min-h-[90px] p-1.5 sm:p-2 border rounded-xl flex flex-col justify-between transition-colors ${
-                  isToday
-                    ? 'border-neutral-900 bg-neutral-50'
-                    : 'border-neutral-200 hover:border-neutral-300 hover:bg-neutral-50/50'
-                }`}
-              >
-                <span
-                  className={`text-[11px] sm:text-xs font-bold inline-block w-5 h-5 text-center leading-5 rounded-full ${
-                    isToday ? 'bg-neutral-900 text-white' : 'text-neutral-700'
-                  }`}
-                >
-                  {day}
+        <div className="flex flex-col gap-3">
+          {schedulesByWeek.map(({ weekNum, schedules }) => (
+            <div
+              key={weekNum}
+              className="p-4 border border-neutral-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:border-neutral-300 transition-colors bg-neutral-50/50"
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xs font-bold w-20 px-2.5 py-1 text-center bg-neutral-900 text-white rounded-lg shadow-2xs">
+                  Week {weekNum}
                 </span>
-
-                <div className="flex flex-col gap-1 overflow-hidden">
-                  {schedules.length > 0 && (
-                    <span className="text-[9px] sm:text-[10px] font-medium bg-blue-50 text-blue-700 border border-blue-100 px-1 py-0.5 rounded truncate text-center">
-                      {dayTask ? 'Task Assegnato' : ''}
-                    </span>
-                  )}
-                </div>
               </div>
-            );
-          })}
+
+              <div className="flex flex-wrap gap-2 flex-1 justify-start sm:justify-end">
+                {schedules.length === 0 ? (
+                  <span className="text-xs text-neutral-400 italic">No task assigned</span>
+                ) : (
+                  schedules.map((schedule) => {
+                    // Ora che hai sistemato lo schema nel DB, non c'è più bisogno di forzare il tipo con String()
+                    const userName = userMap.get(schedule.user_id) || 'Unassigned';
+                    const taskTitle = taskMap.get(schedule.task_id) || 'Unknown Task';
+
+                    return (
+                      <div
+                        key={schedule.id}
+                        className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-100 px-2.5 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm"
+                      >
+                        <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0"></span>
+                        <span className="font-bold text-neutral-900">{userName}:</span>
+                        <span className="text-neutral-700">{taskTitle}</span>
+                      </div>
+                    );
+                  })
+                )}
+              </div>
+            </div>
+          ))}
         </div>
       </section>
 
-    
+      {/* FLATMATE SECTION */}
       <section className="bg-white border border-neutral-200 rounded-2xl p-5 sm:p-6 shadow-xs">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg sm:text-xl font-bold tracking-tight text-neutral-900">
@@ -96,7 +102,7 @@ export default async function MainPage() {
         </div>
 
         {users.length === 0 ? (
-          <p className="text-sm text-neutral-500 py-4 text-center">No user in db.</p>
+          <p className="text-sm text-neutral-500 py-4 text-center">No users in the database.</p>
         ) : (
           <ul className="divide-y divide-neutral-100">
             {users.map((user) => {
@@ -112,7 +118,6 @@ export default async function MainPage() {
                   <div className="flex items-center gap-3">
                     <div className="relative w-9 h-9 rounded-full bg-neutral-100 border border-neutral-200 flex items-center justify-center text-xs font-semibold text-neutral-700 shrink-0">
                       {initials}
-                
                     </div>
 
                     <div className="min-w-0">
@@ -121,7 +126,6 @@ export default async function MainPage() {
                       </p>
                     </div>
                   </div>
-
                 </li>
               );
             })}

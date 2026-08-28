@@ -13,7 +13,7 @@ export interface Task{
 export interface Schedule {
     id: string;
     user_id: string;
-    task_id: number;
+    task_id: string;
     date: string;
     status: 'pending' | 'completed';
 }

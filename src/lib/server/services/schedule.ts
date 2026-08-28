@@ -43,4 +43,11 @@ export function getWeekSchedule(week: number, year: number): Schedule[] {
     return schedules;
 }
 
+export function existSchedule(week: number, year: number) : boolean{
+    const stmt = db.prepare('SELECT * FROM schedules WHERE week_number = ? AND year = ?');
+    const sched = stmt.get(week,year);
+    return !!sched;
+}
+
+
 

@@ -29,7 +29,7 @@ db.exec(`
     CREATE TABLE IF NOT EXISTS schedules (
         id TEXT PRIMARY KEY,
         user_id TEXT,
-        task_id INTEGER,
+        task_id TEXT,
         year INTEGER NOT NULL,
         week_number TEXT NOT NULL,
         month INTEGER NOT NULL,
